@@ -1,0 +1,14 @@
+{
+  "name": "Symptom log",
+  "short_name": "Symptoms",
+  "description": "Track symptoms, joint pain and medication.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E8F4FD",
+  "theme_color": "#9DD0F5",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

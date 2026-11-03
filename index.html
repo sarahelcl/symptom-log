@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Symptom log</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#9DD0F5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Symptom log">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{color-scheme:light;--bg:#E8F4FD;--surface:#FFFFFF;--ink:#17262D;--muted:#5A6D75;--line:#C5DCEC;--accent:#9DD0F5;--accent-ink:#0E2A3B;--accent-text:#1B5E96;--focus:#E08A00;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:28px;margin:8px 0 2px}
+h2{font-size:19px;margin:0 0 12px}
+.sub{color:var(--muted);margin:0 0 20px}
+section{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+label{display:block;font-weight:700;margin:14px 0 6px}
+label:first-of-type{margin-top:0}
+input,textarea,select,button{font:inherit;color:inherit}
+input[type=text],input[type=datetime-local],textarea,select{width:100%;padding:11px 12px;background:var(--bg);border:1px solid var(--line);border-radius:10px}
+textarea{min-height:72px;resize:vertical}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sevrow{display:flex;align-items:center;gap:14px}
+.sevval{min-width:56px;height:56px;border-radius:12px;display:grid;place-items:center;font-size:26px;font-weight:700;color:#10191D}
+input[type=range]{flex:1;accent-color:var(--accent);height:32px}
+.scale{display:flex;justify-content:space-between;color:var(--muted);font-size:14px;margin-top:2px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent-text);border:1px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
+.chart{overflow-x:auto}
+.day{margin:18px 0 6px;font-weight:700;color:var(--muted);font-size:15px}
+.item{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.item .dot{flex:none;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#10191D}
+.item .body{flex:1;min-width:0}
+.item .name{font-weight:700}
+.item .meta{color:var(--muted);font-size:15px}
+.item .note{overflow-wrap:anywhere}
+.del{background:none;border:0;color:var(--muted);cursor:pointer;padding:6px;border-radius:8px;align-self:flex-start}
+.empty{color:var(--muted);margin:6px 0 0}
+#summary{width:100%;min-height:150px;margin-top:12px;font-size:15px}
+.toast{color:var(--accent-text);font-weight:700;margin-left:4px}
+@media (prefers-reduced-motion:no-preference){.item{animation:in .25s ease}@keyframes in{from{opacity:.4}}}
+details{border-top:1px solid var(--line)}
+summary{cursor:pointer;font-weight:700;padding:12px 0;display:flex;justify-content:space-between;gap:10px}
+.cnt{color:var(--accent-text)}
+.joint{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}
+.joint.on{border-color:var(--accent-text)}
+.jn{font-weight:700}
+.jl label{margin:8px 0 0;font-weight:400}
+.jl input{width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acts{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.btn.sm{padding:8px 12px}
+.fig{flex:none;width:120px}.fig svg{width:100%;height:auto;display:block}.fig.big{width:190px}
+.livewrap{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:8px}
+.figcap{flex:1;min-width:150px;font-size:15px}
+.leg{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0}
+.leg i{flex:1;height:10px;border-radius:5px;background:linear-gradient(90deg,hsl(2,85%,79%),hsl(2,85%,38%))}
+</style>
+</head>
+<body>
+<main>
+<h1>Symptom log</h1>
+<p class="sub" id="count">Nothing logged yet.</p>
+
+<section aria-labelledby="addh">
+<h2 id="addh">Log a symptom</h2>
+<label for="name">What are you feeling?</label>
+<input type="text" id="name" list="past" placeholder="Headache, nausea, fatigue" autocomplete="off">
+<datalist id="past"></datalist>
+
+<label for="sev">How strong is it?</label>
+<div class="sevrow">
+<div class="sevval" id="sevval" aria-live="polite">5</div>
+<input type="range" id="sev" min="1" max="10" value="5">
+</div>
+<div class="scale"><span>Barely there</span><span>Worst imaginable</span></div>
+
+<label for="when">When did it happen?</label>
+<input type="datetime-local" id="when">
+
+<label for="note">Notes: triggers, food, sleep, medication</label>
+<textarea id="note"></textarea>
+
+<div class="row"><button class="btn" id="save">Save entry</button><span class="toast" id="toast" role="status"></span></div>
+</section>
+
+<section aria-labelledby="jh">
+<h2 id="jh">Joint check-in</h2>
+<p class="sub">Open a body area and move the sliders for any joint that’s bothering you. Joints you don’t touch aren’t saved. Pain runs from 1 (none) to 10 (severe). Stiff to loose runs from 1 (very stiff) to 10 (very loose).</p>
+<div id="jlive" class="livewrap"></div>
+<div id="jgroups"></div>
+<div class="row"><button class="btn" id="jsave">Save joint check-in</button><span class="toast" id="jtoast" role="status"></span></div>
+<h2 style="margin-top:24px">Recent joint check-ins</h2>
+<div id="jhist"></div>
+</section>
+
+<section aria-labelledby="mh">
+<h2 id="mh">Medication</h2>
+<label for="dosewhen">Time taken</label>
+<input type="datetime-local" id="dosewhen">
+<p class="sub" style="margin:6px 0 4px">Change this to record a dose you took earlier. Then tap Log dose on the medication.</p>
+<div id="medlist"></div>
+<details><summary>Add a medication</summary>
+<label for="mname">Name</label><input type="text" id="mname" autocomplete="off">
+<div class="two"><div><label for="mdose">Dose</label><input type="text" id="mdose" placeholder="500 mg"></div><div><label for="mnote">How often</label><input type="text" id="mnote" placeholder="Twice daily"></div></div>
+<div class="row"><button class="btn" id="madd">Add medication</button><span class="toast" id="mtoast" role="status"></span></div>
+</details>
+<h2 style="margin-top:24px">Recent doses</h2>
+<div id="doselist"></div>
+</section>
+
+<section aria-labelledby="trendh">
+<h2 id="trendh">Last 14 days</h2>
+<p class="sub" style="margin-bottom:8px">Highest severity logged each day.</p>
+<div class="chart" id="chart"></div>
+</section>
+
+<section aria-labelledby="logh">
+<h2 id="logh">History</h2>
+<label for="filter">Show</label>
+<select id="filter"></select>
+<div id="list"></div>
+</section>
+
+<section aria-labelledby="sumh">
+<h2 id="sumh">Summary for an appointment</h2>
+<p class="sub" style="margin-bottom:0">Covers the last 30 days.</p>
+<div class="row"><button class="btn ghost" id="mk">Create summary</button><button class="btn ghost" id="cp">Copy</button></div>
+<textarea id="summary" readonly aria-label="Summary text"></textarea>
+</section>
+<p class="sub">Entries are stored in this browser only. Clearing site data removes them.</p>
+</main>
+<script>
+(function(){
+var KEY='symptom-log-v1',E=[];
+var $=function(i){return document.getElementById(i)};
+var J=[],M=[],D=[],cur={};
+function load(){try{var r=JSON.parse(localStorage.getItem('symptom-log-v2')||'null');if(r){E=r.e||[];J=r.j||[];M=r.m||[];D=r.d||[]}else{var o=JSON.parse(localStorage.getItem(KEY)||'[]');E=Array.isArray(o)?o:[]}}catch(e){E=[]}}
+function store(){try{localStorage.setItem('symptom-log-v2',JSON.stringify({e:E,j:J,m:M,d:D}))}catch(e){}}
+function col(s){return 'hsl('+(172-17*s)+',58%,'+(72-s*1.5)+'%)'}
+function nowLocal(){var d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,16)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function dayKey(t){var d=new Date(t);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function fmtDay(t){return new Date(t).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})}
+function fmtTime(t){return new Date(t).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}
+
+function render(){
+ E.sort(function(a,b){return b.t-a.t});
+ $('count').textContent=E.length?E.length+(E.length===1?' entry':' entries')+' logged.':'Nothing logged yet.';
+ var names=[];E.forEach(function(e){if(names.indexOf(e.name)<0)names.push(e.name)});
+ $('past').innerHTML=names.map(function(n){return '<option value="'+esc(n)+'">'}).join('');
+ var f=$('filter'),cur=f.value;
+ f.innerHTML='<option value="">All symptoms</option>'+names.map(function(n){return '<option>'+esc(n)+'</option>'}).join('');
+ f.value=names.indexOf(cur)>=0?cur:'';
+ chart();list();joints();meds();
+}
+function chart(){
+ var W=600,H=150,n=14,bw=W/n,out='',today=new Date();today.setHours(0,0,0,0);
+ var max={};E.forEach(function(e){var k=dayKey(e.t);max[k]=Math.max(max[k]||0,e.sev)});
+ for(var i=0;i<n;i++){
+  var d=new Date(today);d.setDate(today.getDate()-(n-1-i));
+  var v=max[dayKey(d)]||0,h=v?Math.max(6,v/10*(H-34)):0,x=i*bw;
+  out+='<rect x="'+(x+5)+'" y="'+(H-24-h)+'" width="'+(bw-10)+'" height="'+h+'" rx="5" fill="'+(v?col(v):'none')+'"/>';
+  if(!v)out+='<line x1="'+(x+8)+'" x2="'+(x+bw-8)+'" y1="'+(H-26)+'" y2="'+(H-26)+'" stroke="var(--line)" stroke-width="2"/>';
+  else out+='<text x="'+(x+bw/2)+'" y="'+(H-30-h)+'" text-anchor="middle" font-size="12" fill="var(--ink)">'+v+'</text>';
+  out+='<text x="'+(x+bw/2)+'" y="'+(H-6)+'" text-anchor="middle" font-size="11" fill="var(--muted)">'+d.getDate()+'</text>';
+ }
+ $('chart').innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="min-width:420px;width:100%" role="img" aria-label="Bar chart of highest daily severity over the last 14 days">'+out+'</svg>';
+}
+function list(){
+ var f=$('filter').value,L=E.filter(function(e){return!f||e.name===f}),h='',last='';
+ if(!L.length){$('list').innerHTML='<p class="empty">'+(E.length?'No entries for this symptom.':'Log your first symptom above to start building a history.')+'</p>';return}
+ L.forEach(function(e){
+  var k=dayKey(e.t);
+  if(k!==last){h+='<div class="day">'+fmtDay(e.t)+'</div>';last=k}
+  h+='<div class="item"><div class="dot" style="background:'+col(e.sev)+'">'+e.sev+'</div><div class="body"><div class="name">'+esc(e.name)+'</div><div class="meta">'+fmtTime(e.t)+'</div>'+(e.note?'<div class="note">'+esc(e.note)+'</div>':'')+'</div><button class="del" data-id="'+e.id+'" aria-label="Delete entry for '+esc(e.name)+'">Delete</button></div>';
+ });
+ $('list').innerHTML=h;
+}
+function toast(m){$('toast').textContent=m;setTimeout(function(){$('toast').textContent=''},2200)}
+
+$('sev').addEventListener('input',function(){var v=+this.value,b=$('sevval');b.textContent=v;b.style.background=col(v)});
+$('save').addEventListener('click',function(){
+ var n=$('name').value.trim();
+ if(!n){toast('Enter a symptom first.');$('name').focus();return}
+ var t=new Date($('when').value).getTime();if(isNaN(t))t=Date.now();
+ E.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:t,name:n,sev:+$('sev').value,note:$('note').value.trim()});
+ store();$('name').value='';$('note').value='';$('when').value=nowLocal();render();toast('Entry saved.');
+});
+$('list').addEventListener('click',function(ev){
+ var id=ev.target.getAttribute&&ev.target.getAttribute('data-id');if(!id)return;
+ E=E.filter(function(e){return e.id!==id});store();render();
+});
+$('filter').addEventListener('change',list);
+$('mk').addEventListener('click',function(){
+ var since=Date.now()-30*864e5,S={};
+ E.filter(function(e){return e.t>=since}).forEach(function(e){
+  var s=S[e.name]||(S[e.name]={n:0,sum:0,max:0,last:0});
+  s.n++;s.sum+=e.sev;s.max=Math.max(s.max,e.sev);s.last=Math.max(s.last,e.t);
+ });
+ var k=Object.keys(S).sort(function(a,b){return S[b].n-S[a].n});
+ if(!k.length){$('summary').value='No entries in the last 30 days.';return}
+ $('summary').value='Symptoms, last 30 days (severity 1–10)\n\n'+k.map(function(n){var s=S[n];return n+': '+s.n+'× logged, average '+(s.sum/s.n).toFixed(1)+', highest '+s.max+', most recent '+new Date(s.last).toLocaleDateString()}).join('\n');
+});
+$('cp').addEventListener('click',function(){
+ var s=$('summary');if(!s.value){$('mk').click()}
+ s.select();var ok=false;
+ try{ok=document.execCommand('copy')}catch(e){}
+ toast(ok?'Copied.':'Text selected. Copy it manually.');
+});
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function tt(id,m){$(id).textContent=m;setTimeout(function(){$(id).textContent=''},2200)}
+var G=[['Head and spine',['Jaw','Neck','Upper back','Lower back'],0],['Arms and hands',['Shoulder','Elbow','Wrist','Hand and fingers'],1],['Legs and feet',['Hip','Knee','Ankle','Foot and toes'],1]];
+function sl(id,k,lab,lo,hi){return '<div class="jl"><label for="'+id+k+'">'+lab+': <b id="'+id+k+'v">–</b></label><input type="range" id="'+id+k+'" data-k="'+k+'" min="1" max="10" value="'+(k==='p'?1:5)+'"><div class="scale"><span>'+lo+'</span><span>'+hi+'</span></div></div>'}
+function jui(){
+ var h='';
+ G.forEach(function(g){
+  var ns=[];g[1].forEach(function(n){if(g[2]){ns.push('Left '+n,'Right '+n)}else ns.push(n)});
+  h+='<details><summary>'+g[0]+'<span class="cnt"></span></summary>';
+  ns.forEach(function(n){var id=n.replace(/ /g,'-');h+='<div class="joint" data-j="'+n+'"><div class="jn">'+n+'</div>'+sl(id,'p','Pain','None','Severe')+sl(id,'s','Stiff to loose','Stiff','Loose')+'</div>'});
+  h+='</details>';
+ });
+ $('jgroups').innerHTML=h;liveFig();
+}
+function updateCnt(){Array.prototype.forEach.call(document.querySelectorAll('#jgroups details'),function(d){var n=d.querySelectorAll('.joint.on').length;d.querySelector('.cnt').textContent=n?n+' selected':''})}
+$('jgroups').addEventListener('input',function(ev){
+ var el=ev.target,row=el.closest('.joint');if(!row)return;
+ var j=row.getAttribute('data-j'),k=el.getAttribute('data-k'),v=+el.value;
+ (cur[j]=cur[j]||{})[k]=v;
+ $(el.id+'v').textContent=v;
+ row.classList.add('on');updateCnt();liveFig();
+});
+$('jsave').addEventListener('click',function(){
+ var ks=Object.keys(cur);
+ if(!ks.length){tt('jtoast','Move a slider for at least one joint.');return}
+ J.push({id:uid(),t:Date.now(),joints:ks.map(function(j){return{j:j,p:cur[j].p==null?null:cur[j].p,s:cur[j].s==null?null:cur[j].s}})});
+ cur={};jui();store();render();tt('jtoast','Check-in saved.');
+});
+var J0={'Shoulder':[262,195],'Elbow':[279,350],'Wrist':[306,432],'Hand and fingers':[308,485],'Hip':[222,480],'Knee':[203,615],'Ankle':[196,800],'Foot and toes':[198,826]};
+var JP={'Jaw':[170,118],'Neck':[170,142],'Upper back':[170,230,1],'Lower back':[170,390,1]};
+Object.keys(J0).forEach(function(n){var p=J0[n];JP['Left '+n]=[p[0],p[1]];JP['Right '+n]=[340-p[0],p[1]]});
+var OA=[[170,35],[192,40],[209,56],[215,80],[214,98],[205,116],[197,128],[198,152],[220,162],[250,174],[270,186],[279,212],[279,250],[285,295],[300,355],[312,405],[322,432],[335,455],[338,478],[333,495],[322,512],[303,518],[289,510],[281,492],[279,462],[285,442],[289,420],[272,385],[255,340],[245,293]];
+var OB=[[245,293],[244,340],[245,400],[246,460],[243,510],[236,555],[228,590],[229,630],[231,665],[229,700],[221,760],[212,800],[208,818],[220,828],[218,836],[190,836],[172,830],[178,805],[180,760],[184,700],[182,650],[176,610],[173,560],[172,500],[171,466]];
+function sm(P){var d='M'+P[0][0]+','+P[0][1];for(var i=0;i<P.length-1;i++){var p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||p2;d+='C'+(p1[0]+(p2[0]-p0[0])/6)+','+(p1[1]+(p2[1]-p0[1])/6)+' '+(p2[0]-(p3[0]-p1[0])/6)+','+(p2[1]-(p3[1]-p1[1])/6)+' '+p2[0]+','+p2[1]}return d}
+var BA=sm(OA),BB=sm(OB);
+function pcol(p){return 'hsl(2,85%,'+Math.round(84-4.6*p)+'%)'}
+function legend(){return '<div class="leg"><span>Mild</span><i></i><span>Severe</span></div>'}
+function pm(c){var m={};c.joints.forEach(function(q){if(q.p!=null)m[q.j]=q.p});return m}
+function body(dx,lab){
+ var a=' fill="none" vector-effect="non-scaling-stroke"',g='<path'+a+' d="'+BA+'"/><path'+a+' d="'+BB+'"/>';
+ return '<g transform="translate('+dx+',0)"><text x="170" y="-14" text-anchor="middle" font-size="40" fill="var(--ink)" fill-opacity=".65">'+lab+'</text><g stroke="var(--ink)" stroke-opacity=".65" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">'+g+'<g transform="translate(340,0) scale(-1,1)">'+g+'</g>'+(lab==='Back'?'<path'+a+' d="M170,432V466"/>':'')+'</g></g>';
+}
+function figure(m){
+ var s='<svg viewBox="0 -60 680 910" role="img" aria-label="Front and back body outlines with pain points marked">'+body(0,'Front')+body(340,'Back');
+ Object.keys(m).forEach(function(j){var p=JP[j];if(!p)return;var c=pcol(m[j]),x=p[0]+(p[2]?340:0),y=p[1];
+  s+='<circle cx="'+x+'" cy="'+y+'" r="32" fill="'+c+'" opacity=".35"/><circle cx="'+x+'" cy="'+y+'" r="18" fill="'+c+'" stroke="hsl(2,85%,28%)" stroke-opacity=".6" vector-effect="non-scaling-stroke"><title>'+esc(j)+', pain '+m[j]+'</title></circle>'});
+ return s+'</svg>';
+}
+function liveFig(){var m={};Object.keys(cur).forEach(function(j){if(cur[j].p!=null)m[j]=cur[j].p});$('jlive').innerHTML='<div class="fig big">'+figure(m)+'</div><div class="figcap"><b>Pain map</b><div>Joints you rate for pain appear here, redder for stronger pain.</div>'+legend()+'</div>'}
+function joints(){
+ var L=J.slice().sort(function(a,b){return b.t-a.t}).slice(0,8);
+ $('jhist').innerHTML=L.length?legend()+L.map(function(c){
+  return '<div class="item"><div class="fig">'+figure(pm(c))+'</div><div class="body"><div class="name">'+fmtDay(c.t)+', '+fmtTime(c.t)+'</div>'+c.joints.map(function(q){
+   return '<div class="meta"><b style="color:var(--ink)">'+esc(q.j)+'</b>: '+(q.p!=null?'pain '+q.p:'')+(q.p!=null&&q.s!=null?', ':'')+(q.s!=null?'stiff to loose '+q.s:'')+'</div>'}).join('')+'</div><button class="del" data-jd="'+c.id+'" aria-label="Delete this joint check-in">Delete</button></div>'}).join(''):'<p class="empty">No joint check-ins yet. Open a body area above to start.</p>';
+}
+$('jhist').addEventListener('click',function(ev){var id=ev.target.getAttribute('data-jd');if(!id)return;J=J.filter(function(c){return c.id!==id});store();render()});
+function meds(){
+ var t0=new Date();t0.setHours(0,0,0,0);
+ $('medlist').innerHTML=M.length?M.map(function(m){
+  var ds=D.filter(function(d){return d.m===m.id}).sort(function(a,b){return b.t-a.t});
+  var today=ds.filter(function(d){return d.t>=t0.getTime()}).length;
+  return '<div class="item"><div class="body"><div class="name">'+esc(m.name)+(m.dose?', '+esc(m.dose):'')+'</div><div class="meta">'+(m.note?esc(m.note)+'. ':'')+'Taken today: '+today+(ds.length?'. Last dose: '+new Date(ds[0].t).toLocaleString(undefined,{weekday:'short',hour:'2-digit',minute:'2-digit'}):'')+'</div></div><div class="acts"><button class="btn sm" data-take="'+m.id+'">Log dose</button><button class="del" data-rm="'+m.id+'" aria-label="Remove '+esc(m.name)+'">Remove</button></div></div>'}).join(''):'<p class="empty">Add a medication to log doses and see when you last took it.</p>';
+ var R=D.slice().sort(function(a,b){return b.t-a.t}).slice(0,8);
+ $('doselist').innerHTML=R.length?R.map(function(d){return '<div class="item"><div class="body"><div class="name">'+esc(d.n)+'</div><div class="meta">'+fmtDay(d.t)+', '+fmtTime(d.t)+'</div></div><button class="del" data-dd="'+d.id+'" aria-label="Delete this dose">Delete</button></div>'}).join(''):'<p class="empty">No doses logged yet.</p>';
+}
+$('madd').addEventListener('click',function(){
+ var n=$('mname').value.trim();
+ if(!n){tt('mtoast','Enter a medication name.');$('mname').focus();return}
+ M.push({id:uid(),name:n,dose:$('mdose').value.trim(),note:$('mnote').value.trim()});
+ $('mname').value='';$('mdose').value='';$('mnote').value='';store();render();tt('mtoast','Medication added.');
+});
+$('medlist').addEventListener('click',function(ev){
+ var a=ev.target.getAttribute('data-take'),r=ev.target.getAttribute('data-rm');
+ if(a){var m=M.filter(function(x){return x.id===a})[0];if(m){D.push({id:uid(),m:m.id,n:m.name+(m.dose?', '+m.dose:''),t:(function(){var v=new Date($('dosewhen').value).getTime();return isNaN(v)?Date.now():v})()});$('dosewhen').value=nowLocal();dwEdited=false;store();render()}}
+ if(r){M=M.filter(function(x){return x.id!==r});store();render()}
+});
+$('doselist').addEventListener('click',function(ev){var id=ev.target.getAttribute('data-dd');if(!id)return;D=D.filter(function(d){return d.id!==id});store();render()});
+$('mk').addEventListener('click',function(){
+ var since=Date.now()-30*864e5,x=[],JS={},MS={};
+ J.filter(function(c){return c.t>=since}).forEach(function(c){c.joints.forEach(function(q){var s=JS[q.j]||(JS[q.j]={n:0,p:0,pn:0,s:0,sn:0});s.n++;if(q.p!=null){s.p+=q.p;s.pn++}if(q.s!=null){s.s+=q.s;s.sn++}})});
+ var jk=Object.keys(JS);
+ if(jk.length)x.push('Joints, last 30 days (pain 1–10; stiff 1 to loose 10)\n'+jk.map(function(n){var s=JS[n];return n+': '+s.n+' check-ins'+(s.pn?', average pain '+(s.p/s.pn).toFixed(1):'')+(s.sn?', average stiff to loose '+(s.s/s.sn).toFixed(1):'')}).join('\n'));
+ D.filter(function(d){return d.t>=since}).forEach(function(d){MS[d.n]=(MS[d.n]||0)+1});
+ var mk=Object.keys(MS);
+ if(mk.length)x.push('Medication doses logged, last 30 days\n'+mk.map(function(n){return n+': '+MS[n]+' doses'}).join('\n'));
+ if(x.length){var s=$('summary'),v=s.value;s.value=(v&&v.indexOf('No entries')!==0?v+'\n\n':'')+x.join('\n\n')}
+});
+jui();
+var dwEdited=false;$('dosewhen').value=nowLocal();$('dosewhen').addEventListener('input',function(){dwEdited=true});window.addEventListener('focus',function(){if(!dwEdited)$('dosewhen').value=nowLocal()});load();$('when').value=nowLocal();$('sevval').style.background=col(5);render();
+})();
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
+</body>
+</html>
